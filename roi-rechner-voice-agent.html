@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROI-Rechner — Lead-Reaktivierung durch Voice Agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:      #000000;
+      --bg-950:     #0a0a0a;
+      --bg-900:     #171717;
+      --bg-800:     #262626;
+      --border-800: #262626;
+      --border-700: #404040;
+      --text-100:   #f5f5f5;
+      --text-300:   #d4d4d4;
+      --text-400:   #a1a1a1;
+      --text-500:   #737373;
+      --text-600:   #525252;
+      --pink:       #dd7bbb;
+      --pink-glow:  rgba(221,123,187,.25);
+      --pink-faint: rgba(221,123,187,.07);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--text-100);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Dot grid ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Pink radial spotlight at top ── */
+    .spotlight {
+      position: fixed;
+      top: -220px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 560px;
+      background: radial-gradient(ellipse at 50% 30%, rgba(221,123,187,.13) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Wrapper ── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 88px 32px 120px;
+    }
+
+    /* ════════════ HEADER ════════════ */
+    header {
+      text-align: center;
+      margin-bottom: 72px;
+    }
+
+    /* Badge — matches agentenwerk badge style */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 24px;
+      padding: 0 12px;
+      border: 1px solid var(--border-700);
+      border-radius: 999px;
+      background: rgba(23,23,23,.9);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--text-400);
+      margin-bottom: 28px;
+    }
+
+    .badge-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--pink);
+      box-shadow: 0 0 7px var(--pink);
+      animation: blink 2.4s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50%      { opacity: .25; }
+    }
+
+    h1 {
+      font-size: clamp(36px, 5.5vw, 68px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+      margin-bottom: 20px;
+      /* gradient text: white → neutral-400, matching agentenwerk */
+      background: linear-gradient(180deg, #ffffff 40%, #a1a1a1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-400);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ════════════ PANEL ════════════ */
+    .panel {
+      background: rgba(23,23,23,.8);
+      border: 1px solid var(--border-800);
+      border-radius: 16px;
+      padding: 48px;
+    }
+
+    /* ── Section header row ── */
+    .section-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .section-row-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text-500);
+      white-space: nowrap;
+    }
+
+    .section-row-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border-800);
+    }
+
+    /* ── Input grid ── */
+    .inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-500);
+    }
+
+    .input-wrap { position: relative; }
+
+    input[type="number"] {
+      width: 100%;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border-800);
+      border-radius: 8px;
+      padding: 12px 50px 12px 16px;
+      color: var(--text-100);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color .2s, background .2s;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    input[type="number"]:hover {
+      border-color: var(--border-700);
+      background: rgba(255,255,255,.05);
+    }
+
+    input[type="number"]:focus {
+      border-color: rgba(221,123,187,.5);
+      background: rgba(221,123,187,.04);
+      box-shadow: 0 0 0 3px rgba(221,123,187,.1);
+    }
+
+    .unit {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      color: var(--text-600);
+      pointer-events: none;
+    }
+
+    /* ── Slider block ── */
+    .slider-block {
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--border-800);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+
+    .slider-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .slider-val {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: var(--text-100);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 2px;
+      background: var(--border-700);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--text-100);
+      border: 2px solid var(--border-700);
+      box-shadow: 0 0 10px var(--pink-glow);
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 18px var(--pink-glow);
+    }
+
+    /* ── Period selector pills ── */
+    .period-block {
+      margin-bottom: 28px;
+    }
+
+    .period-block .field-label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .period-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border-700);
+      background: transparent;
+      color: var(--text-400);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+
+    .pill:hover {
+      border-color: var(--text-400);
+      color: var(--text-100);
+    }
+
+    .pill.active {
+      background: var(--text-100);
+      color: var(--black);
+      border-color: var(--text-100);
+    }
+
+    /* ── Primary Button — white/black like agentenwerk ── */
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 13px 28px;
+      border: none;
+      border-radius: 8px;
+      background: var(--text-100);
+      color: var(--black);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: background .2s, transform .12s;
+    }
+
+    .btn-primary:hover { background: #e5e5e5; }
+    .btn-primary:active { transform: scale(.99); }
+
+    .btn-arrow { transition: transform .2s; }
+    .btn-primary:hover .btn-arrow { transform: translateX(3px); }
+
+    /* ════════════ DIVIDER ════════════ */
+    .divider {
+      height: 1px;
+      background: var(--border-800);
+      margin: 44px 0;
+    }
+
+    /* ════════════ RESULTS ════════════ */
+    #results { display: none; }
+
+    /* ── Bento grid ── */
+    .bento {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    /* Base bento card */
+    .bento-card {
+      background: rgba(23,23,23,.8);
+      border: 1px solid var(--border-800);
+      border-radius: 14px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(14px);
+      transition: border-color .25s, background .25s, transform .2s;
+    }
+
+    .bento-card.in {
+      animation: cardIn .45s cubic-bezier(.22,.68,0,1.15) forwards;
+    }
+
+    @keyframes cardIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bento-card:hover {
+      border-color: var(--border-700);
+      background: rgba(38,38,38,.7);
+      transform: translateY(-2px);
+    }
+
+    /* Hero card */
+    .bento-hero {
+      grid-row: 1 / 3;
+      grid-column: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      border-color: rgba(0,214,143,.15);
+      background: rgba(23,23,23,.9);
+    }
+
+    .bento-hero:hover {
+      border-color: rgba(0,214,143,.3);
+      background: rgba(20,30,25,.9);
+      transform: translateY(-2px);
+    }
+
+    /* Green glow on top edge of hero */
+    .bento-hero::after {
+      content: '';
+      position: absolute;
+      top: -1px; left: 20%; right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #00d68f, transparent);
+      opacity: .4;
+    }
+
+    /* scan sweep on hero */
+    .bento-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -80%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0,214,143,.04), transparent);
+      animation: sweep 4s ease-in-out infinite;
+    }
+
+    @keyframes sweep {
+      0%   { left: -60%; }
+      100% { left: 140%; }
+    }
+
+    .card-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border-700);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-400);
+      margin-bottom: auto;
+      padding-bottom: 0;
+    }
+
+    .bento-hero .card-icon {
+      background: rgba(0,214,143,.06);
+      border-color: rgba(0,214,143,.2);
+      color: #00d68f;
+      margin-bottom: 0;
+      margin-top: 0;
+    }
+
+    .hero-top { margin-bottom: auto; }
+
+    .card-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-600);
+      margin-bottom: 8px;
+      margin-top: 20px;
+    }
+
+    .bento-hero .card-tag { color: rgba(0,214,143,.45); margin-top: 28px; }
+
+    .card-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      line-height: 1;
+      color: var(--text-100);
+      margin-bottom: 5px;
+    }
+
+    .bento-hero .card-value {
+      font-size: clamp(30px, 3.8vw, 48px);
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-500);
+      font-weight: 400;
+    }
+
+    .bento-hero .card-desc { color: rgba(0,214,143,.4); }
+
+    /* Green highlight card */
+    .bento-green {
+      border-color: rgba(0,214,143,.15);
+    }
+
+    .bento-green:hover { border-color: rgba(0,214,143,.3); }
+
+    .bento-green .card-value { color: #00d68f; }
+
+    .bento-green::after {
+      content: '';
+      position: absolute;
+      top: -1px; left: 20%; right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #00d68f, transparent);
+      opacity: .4;
+    }
+
+    /* ── ROI full-width card ── */
+    .roi-card {
+      background: rgba(23,23,23,.8);
+      border: 1px solid var(--border-800);
+      border-radius: 14px;
+      padding: 28px 32px;
+      opacity: 0;
+      transform: translateY(14px);
+    }
+
+    .roi-card.in {
+      animation: cardIn .45s .32s cubic-bezier(.22,.68,0,1.15) forwards;
+    }
+
+    .roi-top {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 16px;
+    }
+
+    .roi-meta-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-600);
+      margin-bottom: 5px;
+    }
+
+    .roi-sub {
+      font-size: 13px;
+      color: var(--text-400);
+      font-weight: 500;
+    }
+
+    .roi-number {
+      font-size: clamp(44px, 5.5vw, 72px);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: 1;
+      /* gradient text: white to neutral matching agentenwerk */
+      background: linear-gradient(180deg, #00d68f 0%, rgba(0,180,120,.7) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      flex-shrink: 0;
+      transition: background .4s;
+    }
+
+    .bar-track {
+      height: 3px;
+      background: rgba(255,255,255,.06);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #dd7bbb, #00d68f);
+      width: 0%;
+      transition: width 1.3s cubic-bezier(.4,0,.2,1);
+    }
+
+    .roi-footnotes {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .fn-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-600);
+    }
+
+    .fn-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Disclaimer ── */
+    .disclaimer {
+      margin-top: 12px;
+      padding: 12px 16px;
+      border: 1px solid var(--border-800);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--text-600);
+      text-align: center;
+      line-height: 1.6;
+      opacity: 0;
+    }
+
+    .disclaimer.in {
+      animation: cardIn .4s .46s ease forwards;
+    }
+
+    /* ── Rate warning ── */
+    .rate-warning {
+      display: none;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding: 18px 22px;
+      border: 1px solid rgba(251,191,36,.3);
+      border-radius: 12px;
+      background: rgba(251,191,36,.06);
+      font-size: 14px;
+      color: rgba(251,191,36,.9);
+      line-height: 1.7;
+    }
+
+    .rate-warning svg { flex-shrink: 0; margin-top: 3px; width: 18px; height: 18px; }
+
+    /* ── Tooltips ── */
+    .tip-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .tip-icon {
+      width: 15px; height: 15px;
+      border-radius: 50%;
+      border: 1px solid var(--border-700);
+      color: var(--text-600);
+      font-size: 9px;
+      font-weight: 700;
+      font-style: normal;
+      cursor: default;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .tip-icon:hover ~ .tip-box { opacity: 1; pointer-events: auto; }
+
+    .tip-box {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      background: var(--bg-800);
+      border: 1px solid var(--border-700);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--text-300);
+      line-height: 1.65;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s;
+      z-index: 20;
+      white-space: normal;
+    }
+
+    /* ════════════ RESPONSIVE ════════════ */
+    @media (max-width: 760px) {
+      .wrapper { padding: 52px 18px 80px; }
+      .panel { padding: 28px 20px; }
+      .inputs-grid { grid-template-columns: 1fr; }
+
+      .bento {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+      }
+
+      .bento-hero {
+        grid-row: auto;
+        grid-column: 1 / 3;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .bento { grid-template-columns: 1fr; }
+      .bento-hero { grid-column: 1; }
+      .roi-top { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--bg-800); border-radius: 3px; }
+
+    /* ── Optional toggle switch ── */
+    .opt-toggle {
+      position: relative;
+      display: inline-flex;
+      width: 28px;
+      height: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .opt-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .opt-slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 8px;
+      background: var(--border-700);
+      transition: background .2s;
+    }
+    .opt-slider::before {
+      content: '';
+      position: absolute;
+      width: 10px; height: 10px;
+      left: 3px; top: 3px;
+      border-radius: 50%;
+      background: var(--text-500);
+      transition: transform .2s, background .2s;
+    }
+    .opt-toggle input:checked + .opt-slider { background: rgba(221,123,187,.4); }
+    .opt-toggle input:checked + .opt-slider::before {
+      transform: translateX(12px);
+      background: var(--pink);
+    }
+    .field-disabled .input-wrap {
+      opacity: .35;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="spotlight"></div>
+
+  <div class="wrapper">
+
+    <!-- ═══ HEADER ═══ -->
+    <header>
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Voice Agent · ROI Calculator
+      </div>
+      <h1>Wie viel Umsatz lässt du<br>gerade liegen?</h1>
+      <p class="subtitle">
+        Berechne das verborgene Potenzial deiner schlafenden Leads —
+        und was ein Voice Agent daraus macht.
+      </p>
+    </header>
+
+    <!-- ═══ PANEL ═══ -->
+    <div class="panel">
+
+      <div class="section-row">
+        <span class="section-row-label">Deine Ausgangslage</span>
+        <span class="section-row-line"></span>
+      </div>
+
+      <!-- Inputs -->
+      <div class="inputs-grid">
+
+        <div class="field">
+          <span class="field-label">Schlafende Leads / Monat</span>
+          <div class="input-wrap">
+            <input type="number" id="leads" value="50" min="1" />
+            <span class="unit">Leads / Mo.</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Ø Auftragswert</span>
+          <div class="input-wrap">
+            <input type="number" id="orderValue" value="1500" min="1" />
+            <span class="unit">€</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Manuelle Nachverfolgung</span>
+          <div class="input-wrap">
+            <input type="number" id="hoursPerWeek" value="8" min="0" />
+            <span class="unit">h / Woche</span>
+          </div>
+        </div>
+
+        <div class="field" id="field-wage">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span class="field-label" style="margin-bottom:0;">Stundenlohn Mitarbeiter</span>
+            <label class="opt-toggle" title="Optional ein-/ausblenden">
+              <input type="checkbox" id="toggle-wage" checked onchange="toggleOptional('field-wage','toggle-wage','hourlyWage')">
+              <span class="opt-slider"></span>
+            </label>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="hourlyWage" value="35" min="1" />
+            <span class="unit">€ / h</span>
+          </div>
+        </div>
+
+        <div class="field" id="field-employees">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span class="field-label" style="margin-bottom:0;">Anzahl Mitarbeiter</span>
+            <label class="opt-toggle" title="Optional ein-/ausblenden">
+              <input type="checkbox" id="toggle-employees" checked onchange="toggleOptional('field-employees','toggle-employees','employees')">
+              <span class="opt-slider"></span>
+            </label>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="employees" value="1" min="1" />
+          </div>
+        </div>
+
+        <div class="field">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+            <span class="field-label" style="margin-bottom:0;">Voice Agent Kosten / Monat</span>
+            <div class="tip-wrap">
+              <span class="tip-icon">?</span>
+              <div class="tip-box">Monatliche Betriebskosten deines Voice Agents — z. B. Lizenz, Telefonie und anteilige Setup-Kosten.</div>
+            </div>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="agentCost" value="500" min="0" />
+            <span class="unit">€ / Mo.</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Slider: manuelle Rate -->
+      <div class="slider-block">
+        <div class="slider-top">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="field-label">Aktuelle Reaktivierungsquote (manuell)</span>
+            <div class="tip-wrap">
+              <span class="tip-icon">?</span>
+              <div class="tip-box">Wie viel Prozent deiner schlafenden Leads werden aktuell durch manuelle Nachverfolgung zu Aufträgen?</div>
+            </div>
+          </div>
+          <span class="slider-val" id="rateVal">15%</span>
+        </div>
+        <input type="range" id="currentRate" min="0" max="99" value="15" step="0.5"
+               oninput="document.getElementById('rateVal').textContent = this.value + '%'" />
+      </div>
+
+      <!-- Slider: KI-Quote -->
+      <div class="slider-block">
+        <div class="slider-top">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span class="field-label">Erwartete KI-Reaktivierungsquote</span>
+            <div class="tip-wrap">
+              <span class="tip-icon">?</span>
+              <div class="tip-box">Wie viel Prozent der schlafenden Leads der Voice Agent voraussichtlich reaktiviert. Branchenüblich: 25–45 %. Hängt von Angebot, Timing und Lead-Qualität ab.</div>
+            </div>
+          </div>
+          <span class="slider-val" id="aiRateVal">35%</span>
+        </div>
+        <input type="range" id="aiRate" min="1" max="99" value="35" step="1"
+               oninput="document.getElementById('aiRateVal').textContent = this.value + '%'" />
+      </div>
+
+      <!-- Period selector -->
+      <div class="period-block">
+        <span class="field-label">Betrachtungszeitraum</span>
+        <div class="period-pills">
+          <button class="pill" onclick="setPeriod(1,this)">1 Monat</button>
+          <button class="pill" onclick="setPeriod(3,this)">1 Quartal</button>
+          <button class="pill" onclick="setPeriod(6,this)">Halbjahr</button>
+          <button class="pill" onclick="setPeriod(9,this)">3 Quartale</button>
+          <button class="pill active" onclick="setPeriod(12,this)">1 Jahr</button>
+          <button class="pill" onclick="setPeriod(24,this)">2 Jahre</button>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <button class="btn-primary" onclick="calculate()">
+        ROI berechnen
+        <svg class="btn-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5-5 5M6 12h12"/>
+        </svg>
+      </button>
+
+      <!-- ═══ RESULTS ═══ -->
+      <div id="results">
+
+        <div class="divider"></div>
+
+        <div class="section-row" style="margin-bottom:20px;">
+          <span class="section-row-label">Deine Ergebnisse</span>
+          <span class="section-row-line"></span>
+        </div>
+
+        <!-- Rate warning -->
+        <div class="rate-warning" id="rate-warning">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+          <span id="rate-warning-text"></span>
+        </div>
+
+        <!-- Bento grid -->
+        <div class="bento">
+
+          <!-- HERO: Umsatz -->
+          <div class="bento-card bento-hero" id="c-revenue">
+            <div class="hero-top">
+              <div class="card-icon">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div class="card-tag">Umsatzsteigerung</div>
+              <div class="card-value" id="r-revenue">—</div>
+              <div class="card-desc" id="desc-revenue">im Zeitraum</div>
+            </div>
+          </div>
+
+          <!-- Aufträge -->
+          <div class="bento-card" id="c-orders">
+            <div class="card-icon">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2 13.5V7a2 2 0 012-2h16a2 2 0 012 2v6.5M2 13.5a2 2 0 002 2h16a2 2 0 002-2M2 13.5h20"/>
+              </svg>
+            </div>
+            <div class="card-tag">Zusätzliche Aufträge</div>
+            <div class="card-value" id="r-orders">—</div>
+            <div class="card-desc">reaktivierte Leads</div>
+          </div>
+
+          <!-- Ersparnis -->
+          <div class="bento-card" id="c-savings">
+            <div class="card-icon">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 3"/>
+              </svg>
+            </div>
+            <div class="card-tag">Personalkosten gespart</div>
+            <div class="card-value" id="r-savings">—</div>
+            <div class="card-desc" id="desc-savings">im Zeitraum</div>
+          </div>
+
+          <!-- Gesamt — green -->
+          <div class="bento-card bento-green" id="c-total">
+            <div class="card-icon" style="border-color:rgba(0,214,143,.2);background:rgba(0,214,143,.06);color:#00d68f;">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div class="card-tag" style="color:rgba(0,214,143,.45);">Finanzieller Mehrwert</div>
+            <div class="card-value" id="r-total">—</div>
+            <div class="card-desc" id="desc-total">Umsatz + Ersparnis</div>
+          </div>
+
+          <!-- Spacer info cell -->
+          <div class="bento-card" id="c-info" style="display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;text-align:center;">
+            <div style="font-size:20px;opacity:.15;">⚙</div>
+            <div style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-600);line-height:1.5;">Basiert auf<br>KI-Quote <span id="info-ai-rate">35</span> %</div>
+          </div>
+
+        </div>
+
+        <!-- ROI card -->
+        <div class="roi-card" id="c-roi">
+          <div class="roi-top">
+            <div>
+              <div class="roi-meta-label">Return on Investment</div>
+              <div class="roi-sub">Mehrwert nach Abzug der Voice-Agent-Kosten</div>
+            </div>
+            <div class="roi-number" id="r-roi">—</div>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" id="roi-bar"></div>
+          </div>
+          <div class="roi-footnotes">
+            <div class="fn-item">
+              <span class="fn-dot" style="background:var(--pink)"></span>
+              KI-Quote <span id="fn-ai-rate">35</span> %
+            </div>
+            <div class="fn-item">
+              <span class="fn-dot" style="background:#00d68f"></span>
+              Voice-Agent-Kosten eingerechnet
+            </div>
+            <div class="fn-item">
+              <span class="fn-dot" style="background:var(--border-700)"></span>
+              <span id="fn-period">Projektion über 1 Jahr</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="disclaimer" id="c-disc">
+          Hochrechnung auf Basis branchenüblicher Benchmarks. Tatsächliche Ergebnisse variieren
+          je nach Branche, Angebotsgüte und Lead-Qualität.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleOptional(fieldId, toggleId, inputId) {
+      const field   = document.getElementById(fieldId);
+      const checked = document.getElementById(toggleId).checked;
+      field.classList.toggle('field-disabled', !checked);
+      document.getElementById(inputId).disabled = !checked;
+      if (hasCalculated) calculate();
+    }
+
+    let selectedMonths = 12;
+    let hasCalculated  = false;
+
+    function setPeriod(months, btn) {
+      selectedMonths = months;
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      if (hasCalculated) calculate();
+    }
+
+    function periodLabel(m) {
+      if (m === 1)  return '1 Monat';
+      if (m === 3)  return '1 Quartal';
+      if (m === 6)  return 'Halbjahr';
+      if (m === 9)  return '3 Quartale';
+      if (m === 12) return '1 Jahr';
+      if (m === 24) return '2 Jahre';
+      return `${m} Monate`;
+    }
+
+    function fmt(n) {
+      const abs = Math.abs(n);
+      const sign = n < 0 ? '−' : '';
+      if (abs >= 1000000)
+        return sign + new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 }).format(abs / 1000000) + ' Mio. €';
+      return sign + new Intl.NumberFormat('de-DE').format(Math.round(abs)) + ' €';
+    }
+
+    function animCount(el, end, ms, formatter) {
+      const t0 = performance.now();
+      const ease = p => 1 - Math.pow(1 - p, 3);
+      (function tick(now) {
+        const p = Math.min((now - t0) / ms, 1);
+        el.textContent = formatter(end * ease(p));
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    }
+
+    function show(id, delay) {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        el.classList.remove('in');
+        void el.offsetWidth;
+        el.classList.add('in');
+      }, delay);
+    }
+
+    function calculate() {
+      const firstRun = !hasCalculated;
+      hasCalculated = true;
+      const leads          = +document.getElementById('leads').value || 0;
+      const orderVal       = +document.getElementById('orderValue').value || 0;
+      const curRate        = +document.getElementById('currentRate').value / 100;
+      const aiRate         = +document.getElementById('aiRate').value / 100;
+      const hpw            = +document.getElementById('hoursPerWeek').value || 0;
+      const wage           = document.getElementById('toggle-wage').checked
+        ? (+document.getElementById('hourlyWage').value || 0) : 0;
+      const employees      = document.getElementById('toggle-employees').checked
+        ? Math.max(1, +document.getElementById('employees').value || 1) : 0;
+      const agentCostMonth = +document.getElementById('agentCost').value || 0;
+      const months         = selectedMonths;
+      const weeks          = months * (52 / 12);
+
+      const totalLeads     = leads * months;
+      const addOrders      = Math.max(0, totalLeads * aiRate - totalLeads * curRate);
+      const addRevenue     = addOrders * orderVal;
+      const savings        = hpw * wage * weeks * employees;
+      const benefit        = addRevenue + savings;
+      const agentCostTotal = agentCostMonth * months;
+      const roi            = agentCostTotal > 0
+        ? (benefit - agentCostTotal) / agentCostTotal * 100
+        : (benefit > 0 ? 999 : 0);
+      const roiDisp        = Math.min(Math.max(roi, -9999), 9999);
+
+      // Rate warning
+      const warningEl = document.getElementById('rate-warning');
+      const warningTxt = document.getElementById('rate-warning-text');
+      if (curRate >= aiRate) {
+        warningTxt.textContent = `Deine manuelle Quote (${Math.round(curRate*100)} %) übertrifft die erwartete KI-Quote (${Math.round(aiRate*100)} %). Der Voice Agent bringt hier keinen Umsatz-Mehrwert — der ROI ergibt sich ausschließlich aus den eingesparten Personalkosten.`;
+        warningEl.style.display = 'flex';
+      } else {
+        warningEl.style.display = 'none';
+      }
+
+      // Update labels
+      const aiRatePct = Math.round(aiRate * 100);
+      document.getElementById('info-ai-rate').textContent = aiRatePct;
+      document.getElementById('fn-ai-rate').textContent   = aiRatePct;
+
+      const pLabel = periodLabel(months);
+      document.getElementById('desc-revenue').textContent = `in ${pLabel}`;
+      document.getElementById('desc-savings').textContent = employees > 0
+        ? `in ${pLabel} (${employees} MA)` : `in ${pLabel}`;
+      document.getElementById('desc-total').textContent   = `Umsatz + Ersparnis (brutto)`;
+      document.getElementById('fn-period').textContent    = `Projektion über ${pLabel}`;
+
+      // Reveal results block
+      const resultsEl = document.getElementById('results');
+      resultsEl.style.display = 'block';
+      if (firstRun) {
+        setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+        ['c-revenue','c-orders','c-savings','c-total','c-info'].forEach((id, i) => show(id, 80 + i * 80));
+        show('c-roi',  420);
+        show('c-disc', 520);
+      }
+
+      const animDelay = firstRun ? 300 : 0;
+      const animDur   = firstRun ? 950  : 350;
+
+      const roiFmt = v => {
+        const sign = v < 0 ? '−' : '';
+        return sign + Math.round(Math.abs(v)).toLocaleString('de-DE') + ' %';
+      };
+
+      setTimeout(() => {
+        animCount(document.getElementById('r-orders'),  addOrders,  animDur,       v => Math.round(v).toLocaleString('de-DE'));
+        animCount(document.getElementById('r-revenue'), addRevenue, animDur + 50,  fmt);
+        animCount(document.getElementById('r-savings'), savings,    animDur,       fmt);
+        animCount(document.getElementById('r-total'),   benefit,    animDur + 100, fmt);
+        animCount(document.getElementById('r-roi'),     roiDisp,    animDur + 150, roiFmt);
+        setTimeout(() => {
+          const barPct   = roiDisp <= 0 ? 2 : Math.min(roiDisp / 1000, 1) * 100;
+          const roiNumEl = document.getElementById('r-roi');
+          const barEl    = document.getElementById('roi-bar');
+          if (roiDisp < 0) {
+            roiNumEl.style.background = 'linear-gradient(180deg, #ff6b6b 0%, rgba(220,60,60,.7) 100%)';
+            barEl.style.background    = 'linear-gradient(90deg, #ff4d4d, #dd7bbb)';
+          } else {
+            roiNumEl.style.background = 'linear-gradient(180deg, #00d68f 0%, rgba(0,180,120,.7) 100%)';
+            barEl.style.background    = 'linear-gradient(90deg, #dd7bbb, #00d68f)';
+          }
+          roiNumEl.style.webkitBackgroundClip = 'text';
+          roiNumEl.style.backgroundClip       = 'text';
+          barEl.style.width = barPct + '%';
+        }, firstRun ? 100 : 0);
+      }, animDelay);
+    }
+
+    // Live-Neuberechnung nach erstem Klick
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('input[type="number"], input[type="range"]').forEach(el => {
+        el.addEventListener('input', () => { if (hasCalculated) calculate(); });
+      });
+
+      // Cursor ans Ende beim Klick auf Zahlenfelder
+      document.querySelectorAll('input[type="number"]').forEach(el => {
+        el.addEventListener('click', function() {
+          const len = this.value.length;
+          requestAnimationFrame(() => {
+            try {
+              this.type = 'text';
+              this.setSelectionRange(len, len);
+              this.type = 'number';
+            } catch(e) {}
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>
