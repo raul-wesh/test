@@ -608,6 +608,113 @@
       animation: cardIn .4s .46s ease forwards;
     }
 
+    /* ── Rechenweg toggle ── */
+    .rechenweg-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px 20px;
+      border: 1px solid var(--border-700);
+      border-radius: 10px;
+      background: rgba(255,255,255,.03);
+      color: var(--text-300);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      cursor: pointer;
+      transition: border-color .2s, color .2s, background .2s;
+      opacity: 0;
+    }
+
+    .rechenweg-toggle.in {
+      animation: cardIn .4s .52s ease forwards;
+    }
+
+    .rechenweg-toggle:hover {
+      border-color: var(--text-400);
+      background: rgba(255,255,255,.06);
+      color: var(--text-100);
+    }
+
+    .rechenweg-toggle svg {
+      transition: transform .25s cubic-bezier(.22,.68,0,1.2);
+      flex-shrink: 0;
+    }
+
+    .rechenweg-toggle.open svg { transform: rotate(180deg); }
+
+    /* ── Rechenweg panel ── */
+    .rechenweg-panel {
+      display: none;
+      margin-top: 12px;
+      border: 1px solid var(--border-800);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .rechenweg-panel.open { display: block; }
+
+    .rw-section {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-800);
+    }
+
+    .rw-section:last-child { border-bottom: none; }
+
+    .rw-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-600);
+      margin-bottom: 14px;
+    }
+
+    .rw-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,.03);
+      font-size: 13px;
+    }
+
+    .rw-row:last-child { border-bottom: none; }
+
+    .rw-label {
+      color: var(--text-400);
+      line-height: 1.5;
+    }
+
+    .rw-formula {
+      color: var(--text-600);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .rw-val {
+      font-weight: 700;
+      color: var(--text-100);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .rw-val.green { color: #00d68f; }
+    .rw-val.pink  { color: var(--pink); }
+    .rw-val.muted { color: var(--text-500); }
+    .rw-val.red   { color: #ff6b6b; }
+
+    .rw-separator {
+      height: 1px;
+      background: var(--border-800);
+      margin: 4px 0 8px;
+    }
+
     /* ── Rate warning ── */
     .rate-warning {
       display: none;
@@ -735,13 +842,59 @@
       opacity: .35;
       pointer-events: none;
     }
+
+    /* ── Language switcher ── */
+    .lang-switcher {
+      position: absolute;
+      top: 28px;
+      right: 32px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: var(--bg-900);
+      border: 1px solid var(--border-700);
+      border-radius: 8px;
+      padding: 3px;
+      z-index: 10;
+    }
+
+    .lang-btn {
+      padding: 5px 11px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-500);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+
+    .lang-btn:hover { color: var(--text-300); }
+
+    .lang-btn.active {
+      background: var(--bg-800);
+      color: var(--text-100);
+    }
+
+    @media (max-width: 480px) {
+      .lang-switcher { top: 16px; right: 18px; }
+    }
   </style>
 </head>
 <body>
 
   <div class="spotlight"></div>
 
-  <div class="wrapper">
+  <div class="wrapper" style="position:relative;">
+
+    <!-- ═══ LANGUAGE SWITCHER ═══ -->
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="de" onclick="setLang('de')">DE</button>
+      <button class="lang-btn"        data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
 
     <!-- ═══ HEADER ═══ -->
     <header>
@@ -749,8 +902,8 @@
         <span class="badge-dot"></span>
         Voice Agent · ROI Calculator
       </div>
-      <h1>Wie viel Umsatz lässt du<br>gerade liegen?</h1>
-      <p class="subtitle">
+      <h1 data-i18n-html="h1">Wie viel Umsatz lässt du<br>gerade liegen?</h1>
+      <p class="subtitle" data-i18n="subtitle">
         Berechne das verborgene Potenzial deiner schlafenden Leads —
         und was ein Voice Agent daraus macht.
       </p>
@@ -760,7 +913,7 @@
     <div class="panel">
 
       <div class="section-row">
-        <span class="section-row-label">Deine Ausgangslage</span>
+        <span class="section-row-label" data-i18n="section-inputs">Deine Ausgangslage</span>
         <span class="section-row-line"></span>
       </div>
 
@@ -768,15 +921,15 @@
       <div class="inputs-grid">
 
         <div class="field">
-          <span class="field-label">Schlafende Leads / Monat</span>
+          <span class="field-label" data-i18n="label-leads">Schlafende Leads / Monat</span>
           <div class="input-wrap">
             <input type="number" id="leads" value="50" min="1" />
-            <span class="unit">Leads / Mo.</span>
+            <span class="unit" data-i18n="unit-leads">Leads / Mo.</span>
           </div>
         </div>
 
         <div class="field">
-          <span class="field-label">Ø Auftragswert</span>
+          <span class="field-label" data-i18n="label-ordervalue">Ø Auftragswert</span>
           <div class="input-wrap">
             <input type="number" id="orderValue" value="1500" min="1" />
             <span class="unit">€</span>
@@ -784,16 +937,16 @@
         </div>
 
         <div class="field">
-          <span class="field-label">Manuelle Nachverfolgung</span>
+          <span class="field-label" data-i18n="label-hours">Manuelle Nachverfolgung</span>
           <div class="input-wrap">
             <input type="number" id="hoursPerWeek" value="8" min="0" />
-            <span class="unit">h / Woche</span>
+            <span class="unit" data-i18n="unit-hours">h / Woche</span>
           </div>
         </div>
 
         <div class="field" id="field-wage">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <span class="field-label" style="margin-bottom:0;">Stundenlohn Mitarbeiter</span>
+            <span class="field-label" style="margin-bottom:0;" data-i18n="label-wage">Stundenlohn Mitarbeiter</span>
             <label class="opt-toggle" title="Optional ein-/ausblenden">
               <input type="checkbox" id="toggle-wage" checked onchange="toggleOptional('field-wage','toggle-wage','hourlyWage')">
               <span class="opt-slider"></span>
@@ -807,7 +960,7 @@
 
         <div class="field" id="field-employees">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <span class="field-label" style="margin-bottom:0;">Anzahl Mitarbeiter</span>
+            <span class="field-label" style="margin-bottom:0;" data-i18n="label-employees">Anzahl Mitarbeiter</span>
             <label class="opt-toggle" title="Optional ein-/ausblenden">
               <input type="checkbox" id="toggle-employees" checked onchange="toggleOptional('field-employees','toggle-employees','employees')">
               <span class="opt-slider"></span>
@@ -820,15 +973,15 @@
 
         <div class="field">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-            <span class="field-label" style="margin-bottom:0;">Voice Agent Kosten / Monat</span>
+            <span class="field-label" style="margin-bottom:0;" data-i18n="label-agentcost">Voice Agent Kosten / Monat</span>
             <div class="tip-wrap">
               <span class="tip-icon">?</span>
-              <div class="tip-box">Monatliche Betriebskosten deines Voice Agents — z. B. Lizenz, Telefonie und anteilige Setup-Kosten.</div>
+              <div class="tip-box" data-i18n="tip-agentcost">Monatliche Betriebskosten deines Voice Agents — z. B. Lizenz, Telefonie und anteilige Setup-Kosten.</div>
             </div>
           </div>
           <div class="input-wrap">
             <input type="number" id="agentCost" value="500" min="0" />
-            <span class="unit">€ / Mo.</span>
+            <span class="unit" data-i18n="unit-agentcost">€ / Mo.</span>
           </div>
         </div>
 
@@ -838,10 +991,10 @@
       <div class="slider-block">
         <div class="slider-top">
           <div style="display:flex;align-items:center;gap:6px;">
-            <span class="field-label">Aktuelle Reaktivierungsquote (manuell)</span>
+            <span class="field-label" data-i18n="label-currate">Aktuelle Reaktivierungsquote (manuell)</span>
             <div class="tip-wrap">
               <span class="tip-icon">?</span>
-              <div class="tip-box">Wie viel Prozent deiner schlafenden Leads werden aktuell durch manuelle Nachverfolgung zu Aufträgen?</div>
+              <div class="tip-box" data-i18n="tip-currate">Wie viel Prozent deiner schlafenden Leads werden aktuell durch manuelle Nachverfolgung zu Aufträgen?</div>
             </div>
           </div>
           <span class="slider-val" id="rateVal">15%</span>
@@ -854,10 +1007,10 @@
       <div class="slider-block">
         <div class="slider-top">
           <div style="display:flex;align-items:center;gap:6px;">
-            <span class="field-label">Erwartete KI-Reaktivierungsquote</span>
+            <span class="field-label" data-i18n="label-airate">Erwartete KI-Reaktivierungsquote</span>
             <div class="tip-wrap">
               <span class="tip-icon">?</span>
-              <div class="tip-box">Wie viel Prozent der schlafenden Leads der Voice Agent voraussichtlich reaktiviert. Branchenüblich: 25–45 %. Hängt von Angebot, Timing und Lead-Qualität ab.</div>
+              <div class="tip-box" data-i18n="tip-airate">Wie viel Prozent der schlafenden Leads der Voice Agent voraussichtlich reaktiviert. Branchenüblich: 25–45 %. Hängt von Angebot, Timing und Lead-Qualität ab.</div>
             </div>
           </div>
           <span class="slider-val" id="aiRateVal">35%</span>
@@ -868,20 +1021,20 @@
 
       <!-- Period selector -->
       <div class="period-block">
-        <span class="field-label">Betrachtungszeitraum</span>
+        <span class="field-label" data-i18n="label-period">Betrachtungszeitraum</span>
         <div class="period-pills">
-          <button class="pill" onclick="setPeriod(1,this)">1 Monat</button>
-          <button class="pill" onclick="setPeriod(3,this)">1 Quartal</button>
-          <button class="pill" onclick="setPeriod(6,this)">Halbjahr</button>
-          <button class="pill" onclick="setPeriod(9,this)">3 Quartale</button>
-          <button class="pill active" onclick="setPeriod(12,this)">1 Jahr</button>
-          <button class="pill" onclick="setPeriod(24,this)">2 Jahre</button>
+          <button class="pill" data-months="1"  onclick="setPeriod(1,this)"  data-i18n="pill-1">1 Monat</button>
+          <button class="pill" data-months="3"  onclick="setPeriod(3,this)"  data-i18n="pill-3">1 Quartal</button>
+          <button class="pill" data-months="6"  onclick="setPeriod(6,this)"  data-i18n="pill-6">Halbjahr</button>
+          <button class="pill" data-months="9"  onclick="setPeriod(9,this)"  data-i18n="pill-9">3 Quartale</button>
+          <button class="pill active" data-months="12" onclick="setPeriod(12,this)" data-i18n="pill-12">1 Jahr</button>
+          <button class="pill" data-months="24" onclick="setPeriod(24,this)" data-i18n="pill-24">2 Jahre</button>
         </div>
       </div>
 
       <!-- CTA -->
       <button class="btn-primary" onclick="calculate()">
-        ROI berechnen
+        <span data-i18n="btn-calculate">ROI berechnen</span>
         <svg class="btn-arrow" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5-5 5M6 12h12"/>
         </svg>
@@ -893,7 +1046,7 @@
         <div class="divider"></div>
 
         <div class="section-row" style="margin-bottom:20px;">
-          <span class="section-row-label">Deine Ergebnisse</span>
+          <span class="section-row-label" data-i18n="section-results">Deine Ergebnisse</span>
           <span class="section-row-line"></span>
         </div>
 
@@ -918,7 +1071,7 @@
               </div>
             </div>
             <div>
-              <div class="card-tag">Umsatzsteigerung</div>
+              <div class="card-tag" data-i18n="tag-revenue">Umsatzsteigerung</div>
               <div class="card-value" id="r-revenue">—</div>
               <div class="card-desc" id="desc-revenue">im Zeitraum</div>
             </div>
@@ -931,9 +1084,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2 13.5V7a2 2 0 012-2h16a2 2 0 012 2v6.5M2 13.5a2 2 0 002 2h16a2 2 0 002-2M2 13.5h20"/>
               </svg>
             </div>
-            <div class="card-tag">Zusätzliche Aufträge</div>
+            <div class="card-tag" data-i18n="tag-orders">Zusätzliche Aufträge</div>
             <div class="card-value" id="r-orders">—</div>
-            <div class="card-desc">reaktivierte Leads</div>
+            <div class="card-desc" data-i18n="desc-orders">reaktivierte Leads</div>
           </div>
 
           <!-- Ersparnis -->
@@ -943,7 +1096,7 @@
                 <circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 3"/>
               </svg>
             </div>
-            <div class="card-tag">Personalkosten gespart</div>
+            <div class="card-tag" data-i18n="tag-savings">Personalkosten gespart</div>
             <div class="card-value" id="r-savings">—</div>
             <div class="card-desc" id="desc-savings">im Zeitraum</div>
           </div>
@@ -955,7 +1108,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
             </div>
-            <div class="card-tag" style="color:rgba(0,214,143,.45);">Finanzieller Mehrwert</div>
+            <div class="card-tag" style="color:rgba(0,214,143,.45);" data-i18n="tag-total">Finanzieller Mehrwert</div>
             <div class="card-value" id="r-total">—</div>
             <div class="card-desc" id="desc-total">Umsatz + Ersparnis</div>
           </div>
@@ -963,7 +1116,7 @@
           <!-- Spacer info cell -->
           <div class="bento-card" id="c-info" style="display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;text-align:center;">
             <div style="font-size:20px;opacity:.15;">⚙</div>
-            <div style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-600);line-height:1.5;">Basiert auf<br>KI-Quote <span id="info-ai-rate">35</span> %</div>
+            <div id="c-info-text" style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-600);line-height:1.5;"><span data-i18n="info-line1">Basiert auf</span><br><span data-i18n="info-line2">KI-Quote</span> <span id="info-ai-rate">35</span> %</div>
           </div>
 
         </div>
@@ -972,8 +1125,8 @@
         <div class="roi-card" id="c-roi">
           <div class="roi-top">
             <div>
-              <div class="roi-meta-label">Return on Investment</div>
-              <div class="roi-sub">Mehrwert nach Abzug der Voice-Agent-Kosten</div>
+              <div class="roi-meta-label" data-i18n="roi-meta">Return on Investment</div>
+              <div class="roi-sub" data-i18n="roi-sub">Mehrwert nach Abzug der Voice-Agent-Kosten</div>
             </div>
             <div class="roi-number" id="r-roi">—</div>
           </div>
@@ -987,7 +1140,7 @@
             </div>
             <div class="fn-item">
               <span class="fn-dot" style="background:#00d68f"></span>
-              Voice-Agent-Kosten eingerechnet
+              <span data-i18n="fn-agent">Voice-Agent-Kosten eingerechnet</span>
             </div>
             <div class="fn-item">
               <span class="fn-dot" style="background:var(--border-700)"></span>
@@ -997,8 +1150,94 @@
         </div>
 
         <div class="disclaimer" id="c-disc">
-          Hochrechnung auf Basis branchenüblicher Benchmarks. Tatsächliche Ergebnisse variieren
-          je nach Branche, Angebotsgüte und Lead-Qualität.
+          <span data-i18n="disclaimer">Hochrechnung auf Basis branchenüblicher Benchmarks. Tatsächliche Ergebnisse variieren je nach Branche, Angebotsgüte und Lead-Qualität.</span>
+        </div>
+
+        <!-- Rechenweg toggle -->
+        <button class="rechenweg-toggle" id="rw-toggle" onclick="toggleRechenweg()" aria-expanded="false">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6M9 12h6M9 17h4M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"/>
+          </svg>
+          Rechenweg anzeigen
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="margin-left:2px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+
+        <!-- Rechenweg panel -->
+        <div class="rechenweg-panel" id="rw-panel">
+
+          <!-- Eingaben -->
+          <div class="rw-section">
+            <div class="rw-section-title" data-i18n="rw-sec-inputs">Eingaben</div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-leads">Leads im Zeitraum</div><div class="rw-formula" id="rw-f-leads"></div></div>
+              <span class="rw-val" id="rw-leads">—</span>
+            </div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-orderval">Ø Auftragswert</div></div>
+              <span class="rw-val" id="rw-orderval">—</span>
+            </div>
+            <div class="rw-row" id="rw-row-savings" style="display:none;">
+              <div><div class="rw-label" data-i18n="rw-lbl-savingsbase">Personalkosten-Basis</div><div class="rw-formula" id="rw-f-savings"></div></div>
+              <span class="rw-val" id="rw-savingsbase">—</span>
+            </div>
+          </div>
+
+          <!-- Umsatz -->
+          <div class="rw-section">
+            <div class="rw-section-title" data-i18n="rw-sec-revenue">Umsatzberechnung</div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-curorders">Aufträge bisher (manuell)</div><div class="rw-formula" id="rw-f-cur"></div></div>
+              <span class="rw-val muted" id="rw-cur-orders">—</span>
+            </div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-aiorders">Aufträge mit Voice Agent</div><div class="rw-formula" id="rw-f-ai"></div></div>
+              <span class="rw-val" id="rw-ai-orders">—</span>
+            </div>
+            <div class="rw-separator"></div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-addorders">Zusätzliche Aufträge</div><div class="rw-formula" id="rw-f-add-orders"></div></div>
+              <span class="rw-val pink" id="rw-add-orders">—</span>
+            </div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-revenue">Umsatzsteigerung</div><div class="rw-formula" id="rw-f-revenue"></div></div>
+              <span class="rw-val" id="rw-revenue">—</span>
+            </div>
+          </div>
+
+          <!-- Personalkosten -->
+          <div class="rw-section" id="rw-sec-savings">
+            <div class="rw-section-title" data-i18n="rw-sec-savings">Personalkosteneinsparung</div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-hours">Wegfallende Stunden</div><div class="rw-formula" id="rw-f-hours"></div></div>
+              <span class="rw-val muted" id="rw-hours">—</span>
+            </div>
+            <div class="rw-separator"></div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-savingstotal">Personalkosten gespart</div><div class="rw-formula" id="rw-f-savingstotal"></div></div>
+              <span class="rw-val" id="rw-savingstotal">—</span>
+            </div>
+          </div>
+
+          <!-- ROI -->
+          <div class="rw-section">
+            <div class="rw-section-title" data-i18n="rw-sec-roi">ROI-Berechnung</div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-benefit">Gesamtmehrwert (brutto)</div><div class="rw-formula" id="rw-f-benefit"></div></div>
+              <span class="rw-val" id="rw-benefit">—</span>
+            </div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-agentcost">Voice-Agent-Kosten</div><div class="rw-formula" id="rw-f-agentcost"></div></div>
+              <span class="rw-val red" id="rw-agentcost">—</span>
+            </div>
+            <div class="rw-separator"></div>
+            <div class="rw-row">
+              <div><div class="rw-label" data-i18n="rw-lbl-roi">ROI</div><div class="rw-formula" id="rw-f-roi"></div></div>
+              <span class="rw-val green" id="rw-roi-calc">—</span>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -1006,6 +1245,184 @@
   </div>
 
   <script>
+    /* ════ i18n ════ */
+    let lang = 'de';
+
+    const T = {
+      de: {
+        h1:               'Wie viel Umsatz lässt du<br>gerade liegen?',
+        subtitle:         'Berechne das verborgene Potenzial deiner schlafenden Leads —\n        und was ein Voice Agent daraus macht.',
+        'section-inputs': 'Deine Ausgangslage',
+        'label-leads':    'Schlafende Leads / Monat',
+        'unit-leads':     'Leads / Mo.',
+        'label-ordervalue':'Ø Auftragswert',
+        'label-hours':    'Manuelle Nachverfolgung',
+        'unit-hours':     'h / Woche',
+        'label-wage':     'Stundenlohn Mitarbeiter',
+        'label-employees':'Anzahl Mitarbeiter',
+        'label-agentcost':'Voice Agent Kosten / Monat',
+        'unit-agentcost': '€ / Mo.',
+        'tip-agentcost':  'Monatliche Betriebskosten deines Voice Agents — z. B. Lizenz, Telefonie und anteilige Setup-Kosten.',
+        'label-currate':  'Aktuelle Reaktivierungsquote (manuell)',
+        'tip-currate':    'Wie viel Prozent deiner schlafenden Leads werden aktuell durch manuelle Nachverfolgung zu Aufträgen?',
+        'label-airate':   'Erwartete KI-Reaktivierungsquote',
+        'tip-airate':     'Wie viel Prozent der schlafenden Leads der Voice Agent voraussichtlich reaktiviert. Branchenüblich: 25–45 %. Hängt von Angebot, Timing und Lead-Qualität ab.',
+        'label-period':   'Betrachtungszeitraum',
+        'pill-1':         '1 Monat',
+        'pill-3':         '1 Quartal',
+        'pill-6':         'Halbjahr',
+        'pill-9':         '3 Quartale',
+        'pill-12':        '1 Jahr',
+        'pill-24':        '2 Jahre',
+        'btn-calculate':  'ROI berechnen',
+        'section-results':'Deine Ergebnisse',
+        'tag-revenue':    'Umsatzsteigerung',
+        'tag-orders':     'Zusätzliche Aufträge',
+        'desc-orders':    'reaktivierte Leads',
+        'tag-savings':    'Personalkosten gespart',
+        'tag-total':      'Finanzieller Mehrwert',
+        'roi-meta':       'Return on Investment',
+        'roi-sub':        'Mehrwert nach Abzug der Voice-Agent-Kosten',
+        'fn-agent':       'Voice-Agent-Kosten eingerechnet',
+        'info-line1':     'Basiert auf',
+        'info-line2':     'KI-Quote',
+        'disclaimer':     'Hochrechnung auf Basis branchenüblicher Benchmarks. Tatsächliche Ergebnisse variieren je nach Branche, Angebotsgüte und Lead-Qualität.',
+        'rw-show':        'Rechenweg anzeigen',
+        'rw-hide':        'Rechenweg ausblenden',
+        'rw-sec-inputs':  'Eingaben',
+        'rw-lbl-leads':   'Leads im Zeitraum',
+        'rw-lbl-orderval':'Ø Auftragswert',
+        'rw-lbl-savingsbase':'Personalkosten-Basis',
+        'rw-sec-revenue': 'Umsatzberechnung',
+        'rw-lbl-curorders':'Aufträge bisher (manuell)',
+        'rw-lbl-aiorders':'Aufträge mit Voice Agent',
+        'rw-lbl-addorders':'Zusätzliche Aufträge',
+        'rw-lbl-revenue': 'Umsatzsteigerung',
+        'rw-sec-savings': 'Personalkosteneinsparung',
+        'rw-lbl-hours':   'Wegfallende Stunden',
+        'rw-lbl-savingstotal':'Personalkosten gespart',
+        'rw-sec-roi':     'ROI-Berechnung',
+        'rw-lbl-benefit': 'Gesamtmehrwert (brutto)',
+        'rw-lbl-agentcost':'Voice-Agent-Kosten',
+        'rw-lbl-roi':     'ROI',
+        // dynamic
+        orders:      n => `${fmtN(n)} Aufträge`,
+        leads_unit:  n => `${fmtN(n)} Leads`,
+        weeks_unit:  n => `${n} Wochen`,
+        months_unit: n => `${n} Monate`,
+        per_week:    'h/Woche',
+        employees_abbr: 'MA',
+        desc_revenue:  pLabel => `in ${pLabel}`,
+        desc_savings:  (pLabel, emp) => emp > 0 ? `in ${pLabel} (${emp} MA)` : `in ${pLabel}`,
+        desc_total:    () => 'Umsatz + Ersparnis (brutto)',
+        fn_period:     pLabel => `Projektion über ${pLabel}`,
+        rate_warning:  (cur, ai) => `Deine manuelle Quote (${cur} %) übertrifft die erwartete KI-Quote (${ai} %). Der Voice Agent bringt hier keinen Umsatz-Mehrwert — der ROI ergibt sich ausschließlich aus den eingesparten Personalkosten.`,
+        period_labels: { 1:'1 Monat', 3:'1 Quartal', 6:'Halbjahr', 9:'3 Quartale', 12:'1 Jahr', 24:'2 Jahre' },
+        period_default: m => `${m} Monate`,
+      },
+      en: {
+        h1:               'How much revenue are you<br>leaving behind?',
+        subtitle:         'Calculate the hidden potential of your dormant leads —\n        and what a Voice Agent can do with it.',
+        'section-inputs': 'Your Starting Point',
+        'label-leads':    'Dormant Leads / Month',
+        'unit-leads':     'Leads / mo.',
+        'label-ordervalue':'Avg. Order Value',
+        'label-hours':    'Manual Follow-up',
+        'unit-hours':     'h / week',
+        'label-wage':     'Employee Hourly Rate',
+        'label-employees':'Number of Employees',
+        'label-agentcost':'Voice Agent Cost / Month',
+        'unit-agentcost': '€ / mo.',
+        'tip-agentcost':  'Monthly operating costs of your Voice Agent — e.g. license, telephony and prorated setup costs.',
+        'label-currate':  'Current Reactivation Rate (manual)',
+        'tip-currate':    'What percentage of your dormant leads currently convert to orders through manual follow-up?',
+        'label-airate':   'Expected AI Reactivation Rate',
+        'tip-airate':     'What percentage of dormant leads the Voice Agent is expected to reactivate. Industry benchmark: 25–45 %. Depends on offer, timing and lead quality.',
+        'label-period':   'Time Period',
+        'pill-1':         '1 Month',
+        'pill-3':         '1 Quarter',
+        'pill-6':         '6 Months',
+        'pill-9':         '9 Months',
+        'pill-12':        '1 Year',
+        'pill-24':        '2 Years',
+        'btn-calculate':  'Calculate ROI',
+        'section-results':'Your Results',
+        'tag-revenue':    'Revenue Increase',
+        'tag-orders':     'Additional Orders',
+        'desc-orders':    'reactivated leads',
+        'tag-savings':    'Personnel Costs Saved',
+        'tag-total':      'Total Financial Benefit',
+        'roi-meta':       'Return on Investment',
+        'roi-sub':        'Benefit after deducting Voice Agent costs',
+        'fn-agent':       'Voice Agent costs included',
+        'info-line1':     'Based on',
+        'info-line2':     'AI rate',
+        'disclaimer':     'Projection based on industry benchmarks. Actual results vary by industry, offer quality and lead quality.',
+        'rw-show':        'Show Calculation',
+        'rw-hide':        'Hide Calculation',
+        'rw-sec-inputs':  'Inputs',
+        'rw-lbl-leads':   'Leads in Period',
+        'rw-lbl-orderval':'Avg. Order Value',
+        'rw-lbl-savingsbase':'Personnel Cost Base',
+        'rw-sec-revenue': 'Revenue Calculation',
+        'rw-lbl-curorders':'Orders so far (manual)',
+        'rw-lbl-aiorders':'Orders with Voice Agent',
+        'rw-lbl-addorders':'Additional Orders',
+        'rw-lbl-revenue': 'Revenue Increase',
+        'rw-sec-savings': 'Personnel Cost Savings',
+        'rw-lbl-hours':   'Hours Eliminated',
+        'rw-lbl-savingstotal':'Personnel Costs Saved',
+        'rw-sec-roi':     'ROI Calculation',
+        'rw-lbl-benefit': 'Total Benefit (gross)',
+        'rw-lbl-agentcost':'Voice Agent Costs',
+        'rw-lbl-roi':     'ROI',
+        // dynamic
+        orders:      n => `${fmtN(n)} orders`,
+        leads_unit:  n => `${fmtN(n)} leads`,
+        weeks_unit:  n => `${n} weeks`,
+        months_unit: n => `${n} months`,
+        per_week:    'h/week',
+        employees_abbr: 'emp.',
+        desc_revenue:  pLabel => `in ${pLabel}`,
+        desc_savings:  (pLabel, emp) => emp > 0 ? `in ${pLabel} (${emp} emp.)` : `in ${pLabel}`,
+        desc_total:    () => 'Revenue + Savings (gross)',
+        fn_period:     pLabel => `Projection over ${pLabel}`,
+        rate_warning:  (cur, ai) => `Your manual rate (${cur} %) exceeds the expected AI rate (${ai} %). The Voice Agent adds no revenue benefit here — ROI comes exclusively from personnel cost savings.`,
+        period_labels: { 1:'1 Month', 3:'1 Quarter', 6:'6 Months', 9:'9 Months', 12:'1 Year', 24:'2 Years' },
+        period_default: m => `${m} months`,
+      }
+    };
+
+    function t(key) { return (T[lang][key] !== undefined ? T[lang][key] : T.de[key]) || key; }
+
+    function setLang(l) {
+      lang = l;
+      // update static elements
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const val = T[l][key];
+        if (val !== undefined && typeof val === 'string') el.textContent = val;
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.getAttribute('data-i18n-html');
+        const val = T[l][key];
+        if (val !== undefined) el.innerHTML = val;
+      });
+      // update lang buttons
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-lang') === l);
+      });
+      // update rechenweg toggle label
+      const rwBtn = document.getElementById('rw-toggle');
+      if (rwBtn) {
+        const isOpen = rwBtn.classList.contains('open');
+        const labelNode = [...rwBtn.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
+        if (labelNode) labelNode.textContent = isOpen ? ` ${t('rw-hide')} ` : ` ${t('rw-show')} `;
+      }
+      if (hasCalculated) calculate();
+    }
+
+    /* ════ App state ════ */
     function toggleOptional(fieldId, toggleId, inputId) {
       const field   = document.getElementById(fieldId);
       const checked = document.getElementById(toggleId).checked;
@@ -1025,13 +1442,7 @@
     }
 
     function periodLabel(m) {
-      if (m === 1)  return '1 Monat';
-      if (m === 3)  return '1 Quartal';
-      if (m === 6)  return 'Halbjahr';
-      if (m === 9)  return '3 Quartale';
-      if (m === 12) return '1 Jahr';
-      if (m === 24) return '2 Jahre';
-      return `${m} Monate`;
+      return T[lang].period_labels[m] || T[lang].period_default(m);
     }
 
     function fmt(n) {
@@ -1078,7 +1489,9 @@
       const weeks          = months * (52 / 12);
 
       const totalLeads     = leads * months;
-      const addOrders      = Math.max(0, totalLeads * aiRate - totalLeads * curRate);
+      const curOrders      = totalLeads * curRate;
+      const aiOrders       = totalLeads * aiRate;
+      const addOrders      = Math.max(0, aiOrders - curOrders);
       const addRevenue     = addOrders * orderVal;
       const savings        = hpw * wage * weeks * employees;
       const benefit        = addRevenue + savings;
@@ -1092,7 +1505,7 @@
       const warningEl = document.getElementById('rate-warning');
       const warningTxt = document.getElementById('rate-warning-text');
       if (curRate >= aiRate) {
-        warningTxt.textContent = `Deine manuelle Quote (${Math.round(curRate*100)} %) übertrifft die erwartete KI-Quote (${Math.round(aiRate*100)} %). Der Voice Agent bringt hier keinen Umsatz-Mehrwert — der ROI ergibt sich ausschließlich aus den eingesparten Personalkosten.`;
+        warningTxt.textContent = T[lang].rate_warning(Math.round(curRate*100), Math.round(aiRate*100));
         warningEl.style.display = 'flex';
       } else {
         warningEl.style.display = 'none';
@@ -1104,11 +1517,10 @@
       document.getElementById('fn-ai-rate').textContent   = aiRatePct;
 
       const pLabel = periodLabel(months);
-      document.getElementById('desc-revenue').textContent = `in ${pLabel}`;
-      document.getElementById('desc-savings').textContent = employees > 0
-        ? `in ${pLabel} (${employees} MA)` : `in ${pLabel}`;
-      document.getElementById('desc-total').textContent   = `Umsatz + Ersparnis (brutto)`;
-      document.getElementById('fn-period').textContent    = `Projektion über ${pLabel}`;
+      document.getElementById('desc-revenue').textContent = T[lang].desc_revenue(pLabel);
+      document.getElementById('desc-savings').textContent = T[lang].desc_savings(pLabel, employees);
+      document.getElementById('desc-total').textContent   = T[lang].desc_total();
+      document.getElementById('fn-period').textContent    = T[lang].fn_period(pLabel);
 
       // Reveal results block
       const resultsEl = document.getElementById('results');
@@ -1116,8 +1528,9 @@
       if (firstRun) {
         setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
         ['c-revenue','c-orders','c-savings','c-total','c-info'].forEach((id, i) => show(id, 80 + i * 80));
-        show('c-roi',  420);
-        show('c-disc', 520);
+        show('c-roi',     420);
+        show('c-disc',    520);
+        show('rw-toggle', 600);
       }
 
       const animDelay = firstRun ? 300 : 0;
@@ -1127,6 +1540,11 @@
         const sign = v < 0 ? '−' : '';
         return sign + Math.round(Math.abs(v)).toLocaleString('de-DE') + ' %';
       };
+
+      updateRechenweg({ leads, orderVal, curRate, aiRate, hpw, wage, employees,
+        agentCostMonth, months, weeks,
+        totalLeads, curOrders, aiOrders, addOrders,
+        addRevenue, savings, benefit, agentCostTotal, roi });
 
       setTimeout(() => {
         animCount(document.getElementById('r-orders'),  addOrders,  animDur,       v => Math.round(v).toLocaleString('de-DE'));
@@ -1150,6 +1568,82 @@
           barEl.style.width = barPct + '%';
         }, firstRun ? 100 : 0);
       }, animDelay);
+    }
+
+    function toggleRechenweg() {
+      const btn   = document.getElementById('rw-toggle');
+      const panel = document.getElementById('rw-panel');
+      const isOpen = panel.classList.contains('open');
+      panel.classList.toggle('open', !isOpen);
+      btn.classList.toggle('open', !isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
+      const labelNode = [...btn.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
+      if (labelNode) labelNode.textContent = isOpen ? ` ${t('rw-show')} ` : ` ${t('rw-hide')} `;
+    }
+
+    function fmtN(n) { return new Intl.NumberFormat('de-DE').format(Math.round(n)); }
+
+    function updateRechenweg(params) {
+      const { leads, orderVal, curRate, aiRate, hpw, wage, employees,
+              agentCostMonth, months, weeks,
+              totalLeads, curOrders, aiOrders, addOrders,
+              addRevenue, savings, benefit, agentCostTotal, roi } = params;
+
+      const hasSavings = wage > 0 && hpw > 0;
+      const roiStr = agentCostTotal > 0
+        ? `(${fmtN(benefit)} − ${fmtN(agentCostTotal)}) ÷ ${fmtN(agentCostTotal)} × 100`
+        : '—';
+
+      const L = T[lang];
+      // Eingaben
+      setText('rw-f-leads',      `${fmtN(leads)} ${L['unit-leads']} × ${L.months_unit(months)}`);
+      setText('rw-leads',        L.leads_unit(totalLeads));
+      setText('rw-orderval',     fmt(orderVal));
+      if (hasSavings) {
+        document.getElementById('rw-row-savings').style.display = '';
+        setText('rw-f-savings',  `${hpw} ${L.per_week} × ${fmtN(wage)} €/h${employees > 1 ? ` × ${employees} ${L.employees_abbr}` : ''}`);
+        setText('rw-savingsbase',`${fmtN(hpw * wage * (employees || 1))} €/${L.per_week.split('/')[1]}`);
+      } else {
+        document.getElementById('rw-row-savings').style.display = 'none';
+      }
+
+      // Umsatz
+      setText('rw-f-cur',        `${fmtN(totalLeads)} × ${Math.round(curRate*100)} %`);
+      setText('rw-cur-orders',   L.orders(curOrders));
+      setText('rw-f-ai',         `${fmtN(totalLeads)} × ${Math.round(aiRate*100)} %`);
+      setText('rw-ai-orders',    L.orders(aiOrders));
+      setText('rw-f-add-orders', `${fmtN(aiOrders)} − ${fmtN(curOrders)}`);
+      setText('rw-add-orders',   L.orders(addOrders));
+      setText('rw-f-revenue',    `${fmtN(addOrders)} × ${fmt(orderVal)}`);
+      setText('rw-revenue',      fmt(addRevenue));
+
+      // Personalkosten
+      const savingsSection = document.getElementById('rw-sec-savings');
+      savingsSection.style.display = hasSavings ? '' : 'none';
+      if (hasSavings) {
+        const wks = Math.round(weeks * 10) / 10;
+        setText('rw-f-hours',       `${hpw} ${L.per_week} × ${L.weeks_unit(wks)}${employees > 1 ? ` × ${employees} ${L.employees_abbr}` : ''}`);
+        setText('rw-hours',         fmtN(hpw * weeks * (employees || 1)) + ' h');
+        setText('rw-f-savingstotal',`${fmtN(hpw * weeks * (employees || 1))} h × ${fmtN(wage)} €/h`);
+        setText('rw-savingstotal',  fmt(savings));
+      }
+
+      // ROI
+      setText('rw-f-benefit',    `${fmt(addRevenue)} + ${fmt(savings)}`);
+      setText('rw-benefit',      fmt(benefit));
+      setText('rw-f-agentcost',  `${fmt(agentCostMonth)} × ${L.months_unit(months)}`);
+      setText('rw-agentcost',    '−' + fmt(agentCostTotal));
+      setText('rw-f-roi',        roiStr);
+      const roiEl = document.getElementById('rw-roi-calc');
+      roiEl.textContent = roi <= -9999 ? '< −9.999 %'
+        : roi >= 9999   ? '> 9.999 %'
+        : fmtN(roi) + ' %';
+      roiEl.className = 'rw-val ' + (roi < 0 ? 'red' : 'green');
+    }
+
+    function setText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
     }
 
     // Live-Neuberechnung nach erstem Klick
